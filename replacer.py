@@ -23,6 +23,7 @@ if not file_path:
     wait = input("Press enter to exit program.")
     sys.exit()
 
+# Open the document
 try:
     doc = docx.Document(file_path)
 except Exception as e:
@@ -30,9 +31,10 @@ except Exception as e:
     wait = input("Press enter to exit program.")
     sys.exit()
 
+# Replace codes in the document
 answered_codes = dict() # keeps track of answered codes so repeated codes are not asked again
-for para in doc.paragraphs:
-    codes = re.findall(r"\{[^\}]+\}", para.text)
+for paragraph in doc.paragraphs:
+    codes = re.findall(r"\{[^\}]+\}", paragraph.text)
     for code in codes:
         code = code[1:-1]
         parts = code.split("|")
@@ -48,12 +50,13 @@ for para in doc.paragraphs:
                 answer = default
             answered_codes[question] = answer
         
-        original_text = para.text
-        para.clear()
+        original_text = paragraph.text
+        paragraph.clear()
         new_text = original_text.replace("{" + code + "}", answer)
-        para.add_run(new_text)
+        paragraph.add_run(new_text)
         print(answered_codes)
 
+# Prompt user to save the modified document
 try:
     output_file_path = filedialog.asksaveasfilename(defaultextension=".docx", filetypes=[("Word Documents", "*.docx")])
     if output_file_path:
