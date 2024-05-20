@@ -183,7 +183,7 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.geometry("200x100+100+50")
     myapp = App(master=root)
-    myapp.master.title("My App")
+    myapp.master.title("Word Replacer")
     myapp.mainloop()
 
 
