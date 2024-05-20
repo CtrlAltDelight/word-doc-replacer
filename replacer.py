@@ -109,35 +109,43 @@ class ReplacerApp:
 class App(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
+        self.master = master
         self.pack()
         self.replacer = ReplacerApp(self)
         self.create_widgets()
 
     def create_widgets(self):
         self.label = tk.Label(self, text="No file selected.")
-        self.label.pack(pady=2)
+        self.label.pack(padx=18, pady=2)
 
         self.selectButton = tk.Button(self, text="Select File", command=self.replacer.select_file)
-        self.selectButton.pack(pady=2)
+        self.selectButton.pack(padx=2, pady=2)
 
         self.error_msg = tk.Label(self, text="")
-        self.error_msg.pack(pady=5)
+        self.error_msg.pack(padx=2, pady=5)
 
         self.entries_frame = tk.Frame(self)
-        self.entries_frame.pack(pady=5)
+        self.entries_frame.pack(padx=2, pady=5)
 
         self.entries = [] # Stores entry widgets for deletion later
 
         self.saveButton = tk.Button(self, text="Save", command=self.replacer.replace_and_save_document)
         # saveButton is not packed until entries are created
 
+    def update_window_size(self):
+        self.master.update_idletasks()
+        self.master.geometry('')
+
     def add_entry(self, label):
         label = tk.Label(self.entries_frame, text=label)
-        label.pack()
+        label.pack(padx=2)
 
         entry = tk.Entry(self.entries_frame)
-        entry.pack()
+        entry.pack(padx=2)
         self.entries.append((entry, label,))
+
+        self.update_window_size()
+
         return entry
 
     def create_entries(self):
@@ -152,7 +160,7 @@ class App(tk.Frame):
             self.replacer.codes[code].set(answer)
             entry["textvariable"] = self.replacer.codes[code]
 
-        self.saveButton.pack(pady=2)
+        self.saveButton.pack(padx=2, pady=18)
 
     def remove_all_entries(self):
         for (entry, label) in self.entries:
@@ -173,7 +181,7 @@ class App(tk.Frame):
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.geometry("800x600+100+50")
+    root.geometry("200x100+100+50")
     myapp = App(master=root)
     myapp.master.title("My App")
     myapp.mainloop()
