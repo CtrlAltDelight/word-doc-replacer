@@ -5,32 +5,34 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 
-class App(tk.Frame):
-    def __init__(self, master=None):
-        super().__init__(master)
-        self.pack()
-
-        self.entrythingy = tk.Entry()
-        self.entrythingy.pack()
-        self.contents = tk.StringVar()
-        self.contents.set("this is a variable")
-        self.entrythingy["textvariable"] = self.contents
-        self.entrythingy.bind('<Key-Return>', self.print_contents)
-
-        self.create_widgets()
-
-
-    def create_widgets(self):
-        self.selectButton = tk.Button(text="Select File", command=self.select_file)
-        self.selectButton.pack()
-
-    def print_contents(self, event):
-        print("Hi. The current entry content is:", self.contents.get())
+class ReplacerApp:
+    def __init__(self, app):
+        self.app = app
+        self.selected_file_path = None
 
     def select_file(self):
         file = filedialog.askopenfile(mode='r')
         if file:
-            print("File selected: ", file.name)
+            self.selected_file_path = file.name
+            print("File selected: ", self.selected_file_path)
+            self.app.update_label("File selected: " + self.selected_file_path)
+
+class App(tk.Frame):
+    def __init__(self, master=None):
+        super().__init__(master)
+        self.pack()
+        self.replacer = ReplacerApp(self)
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.selectButton = tk.Button(text="Select File", command=self.replacer.select_file)
+        self.selectButton.pack()
+
+        self.label = tk.Label(self, text="No file selected.")
+        self.label.pack()
+
+    def update_label(self, text):
+        self.label.config(text=text)
 
 if __name__ == "__main__":
     root = tk.Tk()
