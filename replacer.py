@@ -28,6 +28,7 @@ class ReplacerApp:
     def open_document(self):
         try:
             self.app.clear_error_msg()
+            self.app.remove_all_entries()
             self.codes = dict()
             if self.selected_file_path:
                 self.doc = docx.Document(self.selected_file_path)
@@ -125,29 +126,41 @@ class App(tk.Frame):
         self.entries_frame = tk.Frame(self)
         self.entries_frame.pack(pady=5)
 
+        self.entries = [] # Stores entry widgets for deletion later
+
         self.saveButton = tk.Button(self, text="Save", command=self.replacer.replace_and_save_document)
         # saveButton is not packed until entries are created
+
+    def add_entry(self, label):
+        label = tk.Label(self.entries_frame, text=label)
+        label.pack()
+
+        entry = tk.Entry(self.entries_frame)
+        entry.pack()
+        self.entries.append((entry, label,))
+        return entry
 
     def create_entries(self):
         if not self.replacer.codes:
             return
 
         for (code, answer) in self.replacer.codes.items():
-            label = tk.Label(self.entries_frame, text=code)
-            label.pack()
 
-            entry = tk.Entry(self.entries_frame)
-            entry.pack()
+            entry = self.add_entry(code)
 
             self.replacer.codes[code] = tk.StringVar()
             self.replacer.codes[code].set(answer)
             entry["textvariable"] = self.replacer.codes[code]
-            entry.bind('<Key-Return>', self.print_contents)
 
         self.saveButton.pack(pady=2)
 
-    def print_contents(self, event):
-        print("Hi. The current entry content is:", self.replacer.codes)
+    def remove_all_entries(self):
+        for (entry, label) in self.entries:
+            entry.pack_forget()
+            entry.destroy()
+            label.pack_forget()
+            label.destroy()
+        self.entries = []
 
     def update_label(self, text):
         self.label.config(text=text)
