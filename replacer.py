@@ -28,6 +28,7 @@ class ReplacerApp:
     def open_document(self):
         try:
             self.app.clear_error_msg()
+            self.codes = dict()
             if self.selected_file_path:
                 self.doc = docx.Document(self.selected_file_path)
             else:
@@ -58,6 +59,52 @@ class ReplacerApp:
         print(self.codes)
         self.app.create_entries()
 
+    def replace_and_save_document(self):
+        if not self.doc:
+            self.open_document()
+
+        if not self.doc:
+            self.app.fill_error_msg("No doc found.")
+            return
+
+        if not self.codes:
+            self.retrieve_codes()
+
+        if not self.codes:
+            self.app.fill_error_msg("No codes found.")
+            return
+
+        for paragraph in self.doc.paragraphs:
+            codes = re.findall(r"\{[^\}]+\}", paragraph.text)
+            for code in codes:
+                code = code[1:-1]
+                parts = code.split("|")
+                question = parts[0]
+                default = parts[1] if len(parts) > 1 else ""
+                
+                answer = ""
+                if question in self.codes:
+                    answer = self.codes[question].get()
+                else:
+                    answer = default
+                
+                original_text = paragraph.text
+                paragraph.clear()
+                new_text = original_text.replace("{" + code + "}", answer)
+                paragraph.add_run(new_text)
+
+        # Prompt user to save the modified document
+        try:
+            output_file_path = filedialog.asksaveasfilename(defaultextension=".docx", filetypes=[("Word Documents", "*.docx")])
+            if output_file_path:
+                self.doc.save(output_file_path)
+                print("The program has finished. Please check the modified document.")
+            else:
+                print("No save location selected. Exiting without saving.")
+        except Exception as e:
+            print(f"Error saving document: {e}")
+
+
 class App(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
@@ -78,6 +125,9 @@ class App(tk.Frame):
         self.entries_frame = tk.Frame(self)
         self.entries_frame.pack(pady=5)
 
+        self.saveButton = tk.Button(self, text="Save", command=self.replacer.replace_and_save_document)
+        # saveButton is not packed until entries are created
+
     def create_entries(self):
         if not self.replacer.codes:
             return
@@ -94,6 +144,8 @@ class App(tk.Frame):
             entry["textvariable"] = self.replacer.codes[code]
             entry.bind('<Key-Return>', self.print_contents)
 
+        self.saveButton.pack(pady=2)
+
     def print_contents(self, event):
         print("Hi. The current entry content is:", self.replacer.codes)
 
@@ -108,7 +160,7 @@ class App(tk.Frame):
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.geometry("500x400+100+50")
+    root.geometry("800x600+100+50")
     myapp = App(master=root)
     myapp.master.title("My App")
     myapp.mainloop()
